@@ -166,7 +166,7 @@ def process_video_file(input_file, output, fps, size, grid, preset, loop, create
                 if create_gif:
                     gif_path = output_file.with_suffix('.gif')
                     grid_cols, grid_rows = map(int, grid.split('x'))
-                    if create_sprite_gif(output_file, gif_path, grid_cols, grid_rows, fps, console):
+                    if create_sprite_gif(output_file, gif_path, grid_cols, grid_rows, fps, input_file, console):
                         console.print(f"[green]✓ Test GIF created: {gif_path}[/green]")
                 
                 return True
@@ -182,13 +182,29 @@ def process_video_file(input_file, output, fps, size, grid, preset, loop, create
             return False
 
 
-def create_sprite_gif(sprite_path, gif_path, grid_cols, grid_rows, fps, console):
+def create_sprite_gif(sprite_path, gif_path, grid_cols, grid_rows, fps, input_file, console):
     """Create an animated GIF from a sprite sheet to test looping."""
     if not PIL_AVAILABLE:
         console.print("[yellow]Warning: Pillow not installed, cannot create test GIF[/yellow]")
         return False
         
     try:
+        # Get original video resolution
+        try:
+            probe_cmd = ['ffprobe', '-v', 'quiet', '-print_format', 'json', '-show_entries', 'stream=width,height', str(input_file)]
+            result = subprocess.run(probe_cmd, capture_output=True, text=True, check=True)
+            streams = json.loads(result.stdout)['streams']
+            video_stream = next((s for s in streams if 'width' in s and 'height' in s), None)
+            if video_stream:
+                original_width = video_stream['width']
+                original_height = video_stream['height']
+                console.print(f"[dim]Original video resolution: {original_width}x{original_height}[/dim]")
+            else:
+                # Fallback to sprite frame size if can't detect
+                original_width = original_height = None
+        except Exception:
+            original_width = original_height = None
+        
         # Open the sprite sheet
         sprite_sheet = Image.open(sprite_path)
         width, height = sprite_sheet.size
@@ -208,6 +224,11 @@ def create_sprite_gif(sprite_path, gif_path, grid_cols, grid_rows, fps, console)
                 bottom = top + frame_height
                 
                 frame = sprite_sheet.crop((left, top, right, bottom))
+                
+                # Scale frame to original video resolution if available
+                if original_width and original_height:
+                    frame = frame.resize((original_width, original_height), Image.LANCZOS)
+                
                 frames.append(frame)
         
         # For better looping, add the first frame at the end to create smooth transition
