@@ -29,6 +29,6 @@ jobs:
                   version: "latest"
 
             - name: Run tests
-
               run: |
-                  uv run pytest tests
+                  uv sync --all-extras
+                  uv run pytest test_spriter.py -v

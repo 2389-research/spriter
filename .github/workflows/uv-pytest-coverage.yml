@@ -29,7 +29,8 @@ jobs:
 
             - name: Build coverage file
               run: |
-                  uv run pytest --junitxml=pytest.xml --cov-report=term-missing:skip-covered --cov=app tests/ | tee pytest-coverage.txt
+                  uv sync --all-extras
+                  uv run pytest --junitxml=pytest.xml --cov-report=term-missing:skip-covered --cov=spriter test_spriter.py | tee pytest-coverage.txt
 
             - name: Pytest coverage comment
               uses: MishaKav/pytest-coverage-comment@main
