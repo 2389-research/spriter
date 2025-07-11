@@ -1,8 +1,8 @@
 # 🎬 Spriter - Video to Sprite Sheet Converter
 
-[![Tests](https://github.com/harperreed/spriter/actions/workflows/uv-pytest.yml/badge.svg)](https://github.com/harperreed/spriter/actions/workflows/uv-pytest.yml)
-[![Coverage](https://github.com/harperreed/spriter/actions/workflows/uv-pytest-coverage.yml/badge.svg)](https://github.com/harperreed/spriter/actions/workflows/uv-pytest-coverage.yml)
-[![Linting](https://github.com/harperreed/spriter/actions/workflows/py-ruff-lint.yaml/badge.svg)](https://github.com/harperreed/spriter/actions/workflows/py-ruff-lint.yaml)
+[![Tests](https://github.com/2389-research/spriter/actions/workflows/uv-pytest.yml/badge.svg)](https://github.com/2389-research/spriter/actions/workflows/uv-pytest.yml)
+[![Coverage](https://github.com/2389-research/spriter/actions/workflows/uv-pytest-coverage.yml/badge.svg)](https://github.com/2389-research/spriter/actions/workflows/uv-pytest-coverage.yml)
+[![Linting](https://github.com/2389-research/spriter/actions/workflows/py-ruff-lint.yaml/badge.svg)](https://github.com/2389-research/spriter/actions/workflows/py-ruff-lint.yaml)
 
 A powerful, easy-to-use command-line tool that converts video files (MOV, MP4, MPG) into sprite sheets for game development, web animations, and other creative projects! 🎮✨
 
@@ -10,10 +10,10 @@ A powerful, easy-to-use command-line tool that converts video files (MOV, MP4, M
 
 ```bash
 # Run directly with uvx (no installation required)
-uvx --from git+https://github.com/harperreed/spriter.git spriter video.mp4 --preset web
+uvx --from git+https://github.com/2389-research/spriter.git spriter video.mp4 --preset web
 
 # Or install globally and use anywhere
-uv tool install git+https://github.com/harperreed/spriter.git
+uv tool install git+https://github.com/2389-research/spriter.git
 spriter video.mp4 --preset game
 ```
 
@@ -49,10 +49,10 @@ Spriter is a Python CLI tool that leverages FFmpeg to extract frames from video 
 
 ```bash
 # Run directly without installation
-uvx --from git+https://github.com/harperreed/spriter.git spriter video.mp4 --preset web
+uvx --from git+https://github.com/2389-research/spriter.git spriter video.mp4 --preset web
 
 # Or from local directory
-git clone https://github.com/harperreed/spriter.git
+git clone https://github.com/2389-research/spriter.git
 cd spriter
 uvx --from . spriter video.mp4 --preset web
 ```
@@ -61,7 +61,7 @@ uvx --from . spriter video.mp4 --preset web
 
 ```bash
 # Install globally with uv tool
-git clone https://github.com/harperreed/spriter.git
+git clone https://github.com/2389-research/spriter.git
 cd spriter
 uv tool install .
 
@@ -73,7 +73,7 @@ spriter video.mp4 --preset web
 
 ```bash
 # Clone and install for development
-git clone https://github.com/harperreed/spriter.git
+git clone https://github.com/2389-research/spriter.git
 cd spriter
 uv sync
 uv run spriter video.mp4 --preset web
@@ -228,4 +228,4 @@ Comprehensive test suite covering:
 
 ---
 
-Built with ❤️ by [Harper Reed](https://github.com/harperreed) • Perfect for indie game developers, web designers, and creative coders! 🎨🚀
+Built with ❤️ by [2389 Research](https://github.com/2389-research) • Perfect for indie game developers, web designers, and creative coders! 🎨🚀
