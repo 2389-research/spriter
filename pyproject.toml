@@ -1,11 +1,21 @@
 [project]
 name = "spriter"
 version = "0.1.0"
-description = "Add your description here"
+description = "Convert video files into sprite sheets using ffmpeg"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "click>=8.2.1",
-    "pytest>=8.4.1",
     "rich>=14.0.0",
 ]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.4.1",
+]
+
+[project.scripts]
+spriter = "spriter.main:main"
+
+[tool.setuptools.packages.find]
+include = ["spriter*"]

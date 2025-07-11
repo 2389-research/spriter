@@ -6,6 +6,17 @@
 
 A powerful, easy-to-use command-line tool that converts video files (MOV, MP4, MPG) into sprite sheets for game development, web animations, and other creative projects! 🎮✨
 
+## ⚡ Quick Start
+
+```bash
+# Run directly with uvx (no installation required)
+uvx --from git+https://github.com/harperreed/spriter.git spriter video.mp4 --preset web
+
+# Or install globally and use anywhere
+uv tool install git+https://github.com/harperreed/spriter.git
+spriter video.mp4 --preset game
+```
+
 ## 📋 Summary
 
 Spriter is a Python CLI tool that leverages FFmpeg to extract frames from video files and arrange them into tile-based sprite sheets. Perfect for:
@@ -30,51 +41,71 @@ Spriter is a Python CLI tool that leverages FFmpeg to extract frames from video 
 
 - Python 3.12+
 - FFmpeg (must be installed and available in PATH)
-- UV package manager (recommended) or pip
+- UV package manager (recommended)
 
 ### Installation
 
+#### Option 1: Quick Start with uvx (Recommended)
+
 ```bash
-# Clone the repository
+# Run directly without installation
+uvx --from git+https://github.com/harperreed/spriter.git spriter video.mp4 --preset web
+
+# Or from local directory
 git clone https://github.com/harperreed/spriter.git
 cd spriter
+uvx --from . spriter video.mp4 --preset web
+```
 
-# Install dependencies with UV (recommended)
+#### Option 2: Global Installation
+
+```bash
+# Install globally with uv tool
+git clone https://github.com/harperreed/spriter.git
+cd spriter
+uv tool install .
+
+# Now use anywhere
+spriter video.mp4 --preset web
+```
+
+#### Option 3: Development Installation
+
+```bash
+# Clone and install for development
+git clone https://github.com/harperreed/spriter.git
+cd spriter
 uv sync
-
-# Or with pip
-pip install -r requirements.txt
+uv run spriter video.mp4 --preset web
 ```
 
 ### Basic Usage
 
 ```bash
 # Convert a single video file with default settings
-uv run python main.py video.mp4
+spriter video.mp4
 
 # Process an entire directory of videos
-uv run python main.py ./videos/
+spriter ./videos/
 
 # Use preset configurations
-uv run python main.py video.mp4 --preset game    # 64x64, 10fps, 6x6 grid
-uv run python main.py video.mp4 --preset web     # 32x32, 8fps, 4x4 grid
-uv run python main.py video.mp4 --preset hires   # 128x128, 12fps, 8x8 grid
+spriter video.mp4 --preset game    # 64x64, 10fps, 6x6 grid
+spriter video.mp4 --preset web     # 32x32, 8fps, 4x4 grid
+spriter video.mp4 --preset hires   # 128x128, 12fps, 8x8 grid
 ```
 
 ### Advanced Usage
 
 ```bash
 # Custom parameters
-uv run python main.py video.mp4 \
+spriter video.mp4 \
   --fps 15 \
   --size 48x48 \
   --grid 5x5 \
   --output custom_spritesheet.png
 
-# Multiple options
-uv run python main.py ./videos/ \
-  --preset web \
-  --output-dir ./output/
+# Process directory with custom settings
+spriter ./videos/ --preset web
 ```
 
 ### Command Line Options
@@ -117,6 +148,10 @@ When no output file is specified, Spriter automatically generates descriptive fi
 dependencies = [
     "click>=8.2.1",    # CLI framework
     "rich>=14.0.0",    # Rich terminal output
+]
+
+[project.optional-dependencies]
+dev = [
     "pytest>=8.4.1",   # Testing framework
 ]
 ```
@@ -131,7 +166,7 @@ uv sync --dev
 uv run pytest
 
 # Run tests with coverage
-uv run pytest --cov=main
+uv run pytest --cov=spriter
 
 # Run linting
 uv run ruff check
@@ -163,7 +198,9 @@ ffmpeg -i input.mp4 -vf "fps=10,scale=64x64,tile=6x6" -frames:v 1 output.png
 
 ```
 spriter/
-├── main.py                 # Main CLI application
+├── spriter/
+│   ├── __init__.py         # Package initialization
+│   └── main.py             # Main CLI application
 ├── test_spriter.py         # Comprehensive test suite
 ├── pyproject.toml          # Project configuration
 ├── .github/workflows/      # CI/CD pipelines

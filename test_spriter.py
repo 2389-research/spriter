@@ -8,7 +8,7 @@ from click.testing import CliRunner
 import tempfile
 import os
 
-from main import main
+from spriter.main import main
 
 
 class TestSpriter:
