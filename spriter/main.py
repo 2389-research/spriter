@@ -134,8 +134,10 @@ def process_video_file(input_file, output, fps, size, grid, preset, loop, create
         # This ensures the animation can loop back to the beginning smoothly
         console.print(f"[dim]Creating {total_frames} frames with first frame duplicated at end for seamless loop[/dim]")
         
-        # Use a simple approach: sample frames normally, then duplicate first frame at end
-        vf = f'fps={fps},scale={size},split=2[main][dup];[dup]select=eq(n\\,0)[first];[main][first]concat=n=2:v=1:a=0,tile={grid}'
+        # Use a simpler approach: let the GIF creation handle the loop duplication
+        # The complex ffmpeg filter might be creating issues with black frames
+        vf = f'fps={fps},scale={size},tile={grid}'
+        console.print("[dim]Note: Loop duplication will be handled during GIF creation[/dim]")
     else:
         vf = f'fps={fps},scale={size},tile={grid}'
     
@@ -230,6 +232,28 @@ def create_sprite_gif(sprite_path, gif_path, grid_cols, grid_rows, fps, input_fi
                 bottom = top + frame_height
                 
                 frame = sprite_sheet.crop((left, top, right, bottom))
+                
+                # Check if frame is mostly black (empty) and skip it
+                frame_rgb = frame.convert('RGB')
+                # Sample multiple pixels to detect black frames
+                pixels_to_check = [
+                    (frame_width//2, frame_height//2),  # center
+                    (min(5, frame_width-1), min(5, frame_height-1)),  # corner
+                    (frame_width-min(5, frame_width-1), frame_height//2),  # right edge
+                    (frame_width//2, frame_height-min(5, frame_height-1))  # bottom edge
+                ]
+                
+                black_pixel_count = 0
+                for px, py in pixels_to_check:
+                    if px < frame_width and py < frame_height:
+                        pixel = frame_rgb.getpixel((px, py))
+                        if pixel == (0, 0, 0):
+                            black_pixel_count += 1
+                
+                # Skip if frame appears to be mostly black/empty (>75% black pixels)
+                if black_pixel_count >= len(pixels_to_check) * 0.75:
+                    console.print(f"[dim]Skipping black frame at position {row},{col}[/dim]")
+                    continue
                 
                 # Scale frame to original video resolution if available
                 if original_width and original_height:
