@@ -1,0 +1,11 @@
+[project]
+name = "spriter"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "click>=8.2.1",
+    "pytest>=8.4.1",
+    "rich>=14.0.0",
+]
