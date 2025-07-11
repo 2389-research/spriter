@@ -130,6 +130,24 @@ def process_video_file(input_file, output, fps, size, grid, preset, loop, create
         grid_cols, grid_rows = map(int, grid.split('x'))
         total_frames = grid_cols * grid_rows
         
+        # Get video frame count and calculate how many frames we'll get at the target FPS
+        try:
+            probe_cmd = ['ffprobe', '-v', 'quiet', '-count_frames', '-select_streams', 'v:0', '-show_entries', 'stream=nb_frames', '-of', 'csv=p=0', str(input_file)]
+            result = subprocess.run(probe_cmd, capture_output=True, text=True, check=True)
+            video_frames = int(result.stdout.strip()) if result.stdout.strip().isdigit() else 0
+            
+            if video_frames > 0:
+                # Calculate how many frames we'll get at the target FPS
+                expected_frames = min(int(duration * fps), video_frames)
+                console.print(f"[dim]Video has {video_frames} frames, duration {duration:.2f}s, target FPS {fps}[/dim]")
+                console.print(f"[dim]Expected {expected_frames} frames at {fps}fps, need {total_frames} for {grid} grid[/dim]")
+                
+                if expected_frames < total_frames:
+                    console.print(f"[yellow]Warning: Will get ~{expected_frames} frames at {fps}fps but need {total_frames} for {grid} grid[/yellow]")
+                    console.print("[yellow]This may result in blank frames in the sprite sheet[/yellow]")
+        except Exception:
+            console.print("[dim]Could not determine video frame count[/dim]")
+        
         # For seamless looping, sample frames evenly and add the first frame at the end
         # This ensures the animation can loop back to the beginning smoothly
         console.print(f"[dim]Creating {total_frames} frames with first frame duplicated at end for seamless loop[/dim]")
@@ -233,26 +251,41 @@ def create_sprite_gif(sprite_path, gif_path, grid_cols, grid_rows, fps, input_fi
                 
                 frame = sprite_sheet.crop((left, top, right, bottom))
                 
-                # Check if frame is mostly black (empty) and skip it
+                # Check if frame is blank/empty and skip it
                 frame_rgb = frame.convert('RGB')
-                # Sample multiple pixels to detect black frames
+                
+                # For more robust blank frame detection, check multiple pixels
                 pixels_to_check = [
                     (frame_width//2, frame_height//2),  # center
-                    (min(5, frame_width-1), min(5, frame_height-1)),  # corner
-                    (frame_width-min(5, frame_width-1), frame_height//2),  # right edge
-                    (frame_width//2, frame_height-min(5, frame_height-1))  # bottom edge
+                    (min(10, frame_width-1), min(10, frame_height-1)),  # top-left
+                    (frame_width-min(10, frame_width-1), min(10, frame_height-1)),  # top-right
+                    (min(10, frame_width-1), frame_height-min(10, frame_height-1)),  # bottom-left
+                    (frame_width-min(10, frame_width-1), frame_height-min(10, frame_height-1)),  # bottom-right
+                    (frame_width//4, frame_height//4),  # quarter points
+                    (3*frame_width//4, 3*frame_height//4)
                 ]
                 
-                black_pixel_count = 0
+                # Count blank/black pixels
+                blank_pixel_count = 0
+                total_brightness = 0
+                
                 for px, py in pixels_to_check:
                     if px < frame_width and py < frame_height:
                         pixel = frame_rgb.getpixel((px, py))
+                        # Check for black pixels
                         if pixel == (0, 0, 0):
-                            black_pixel_count += 1
+                            blank_pixel_count += 1
+                        # Calculate brightness (for very dark/blank frames)
+                        brightness = sum(pixel) / 3
+                        total_brightness += brightness
                 
-                # Skip if frame appears to be mostly black/empty (>75% black pixels)
-                if black_pixel_count >= len(pixels_to_check) * 0.75:
-                    console.print(f"[dim]Skipping black frame at position {row},{col}[/dim]")
+                avg_brightness = total_brightness / len(pixels_to_check)
+                blank_percentage = blank_pixel_count / len(pixels_to_check)
+                
+                # Skip if frame appears to be blank/empty
+                # Either too many black pixels OR very low average brightness
+                if blank_percentage >= 0.6 or avg_brightness < 10:
+                    console.print(f"[dim]Skipping blank frame at position {row},{col} (blank: {blank_percentage:.1%}, brightness: {avg_brightness:.1f})[/dim]")
                     continue
                 
                 # Scale frame to original video resolution if available
