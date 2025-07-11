@@ -113,11 +113,10 @@ def process_video_file(input_file, output, fps, size, grid, preset, loop, create
     
     # Build ffmpeg command
     if loop:
-        # For seamless looping, we create a video that includes the first frame at the end
-        # First, we need to create a video that loops naturally
+        # For seamless looping, ensure sprites end on a neutral frame
         console.print("[yellow]Creating sprite sheet with seamless looping...[/yellow]")
         
-        # Get video duration to calculate loop point
+        # Get video duration to calculate proper sampling
         try:
             probe_cmd = ['ffprobe', '-v', 'quiet', '-print_format', 'json', '-show_entries', 'format=duration', str(input_file)]
             result = subprocess.run(probe_cmd, capture_output=True, text=True, check=True)
@@ -128,7 +127,14 @@ def process_video_file(input_file, output, fps, size, grid, preset, loop, create
             duration = 5.0
             console.print(f"[dim]Using fallback duration: {duration:.2f}s[/dim]")
         
-        # Create a looping video by appending first frame at the end
+        grid_cols, grid_rows = map(int, grid.split('x'))
+        total_frames = grid_cols * grid_rows
+        
+        # For seamless looping, sample frames evenly and add the first frame at the end
+        # This ensures the animation can loop back to the beginning smoothly
+        console.print(f"[dim]Creating {total_frames} frames with first frame duplicated at end for seamless loop[/dim]")
+        
+        # Use a simple approach: sample frames normally, then duplicate first frame at end
         vf = f'fps={fps},scale={size},split=2[main][dup];[dup]select=eq(n\\,0)[first];[main][first]concat=n=2:v=1:a=0,tile={grid}'
     else:
         vf = f'fps={fps},scale={size},tile={grid}'
@@ -162,12 +168,12 @@ def process_video_file(input_file, output, fps, size, grid, preset, loop, create
                 console.print(f"[dim]  File: {output_file}[/dim]")
                 console.print(f"[dim]  Size: {size_mb:.2f} MB[/dim]")
                 
-                # Create test GIF if requested
+                # Create test GIF if requested (GIFs always loop)
                 if create_gif:
                     gif_path = output_file.with_suffix('.gif')
                     grid_cols, grid_rows = map(int, grid.split('x'))
                     if create_sprite_gif(output_file, gif_path, grid_cols, grid_rows, fps, input_file, console):
-                        console.print(f"[green]✓ Test GIF created: {gif_path}[/green]")
+                        console.print(f"[green]✓ Test GIF created: {gif_path} (infinite loop)[/green]")
                 
                 return True
             else:
@@ -231,9 +237,11 @@ def create_sprite_gif(sprite_path, gif_path, grid_cols, grid_rows, fps, input_fi
                 
                 frames.append(frame)
         
-        # For better looping, add the first frame at the end to create smooth transition
+        # Always ensure smooth looping by adding the first frame at the end
+        # This creates a seamless transition back to the beginning
         if len(frames) > 1:
             frames.append(frames[0])
+            console.print(f"[dim]Added first frame at end for seamless GIF loop ({len(frames)} total frames)[/dim]")
         
         # Calculate frame duration in milliseconds (1000ms / fps)
         frame_duration = int(1000 / fps)
